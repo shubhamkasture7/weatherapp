@@ -1,70 +1,75 @@
 import React, { useEffect } from "react";
-
 import axios from "axios";
-
 import cities from "../../Data/in.json";
-import {UseWeatherAPPContext} from '../../Context/Contex'
+import { UseWeatherAPPContext } from "../../Context/Contex";
 
-const ChooseStateComponent = () =>{
+const ChooseStateComponent = () => {
+    const { state: { city, weather, forecast }, dispatch } = UseWeatherAPPContext();
 
+    const handleChange = (e) => {
+        const selectedCity = cities.find((c) => c.city === e.target.value);
 
-    const { state: {city} , dispatch} = UseWeatherAPPContext();
-
-    const handleChange = (e) =>{
-        const selectedCity = cities.filter((city) =>{
-            return city.city === e.target.value
-        })[0]
-        console.log(selectedCity)
-
-        dispatch({
-            type:'SET_CITY',
-            payload : selectedCity
-        })
-    }
-
-    // api call
-
-    const APIKEY = '34480b98aa332da53123a0ac63a4ea9d';
-    let lat = city && city.lat ? city.lat : '';
-    let long = city && city.lng ? city.lng : '';
-    let exclude = 'hourly,minutely';
-    const URL =  `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${long}&exclude=${exclude}&units=metric&lang=tr&appid=${APIKEY}`
-    
-    const fetchData = () =>{
-        axios(URL).then((data) =>{
-            // console.log(data);
-            let daily = data.data.daily;
+        if (selectedCity) {
+            console.log("Selected City:", selectedCity);
             dispatch({
-                type:'SET_DAILY',
-                payload: daily
-            })
-        })
-    }
+                type: "SET_CITY",
+                payload: selectedCity
+            });
+        }
+    };
 
-    // lifecycle method to call fetch data function
+    const APIKEY = process.env.REACT_APP_WEATHER_API_KEY;
 
-    useEffect(() =>{
-        fetchData();
-        // eslint-disable-next-line
-    },[city])
+    let lat = city?.lat;
+    let lon = city?.lng;
+
+    const fetchWeatherData = async () => {
+        if (!lat || !lon) {
+            console.error("Latitude or Longitude is missing");
+            return;
+        }
+
+        const CURRENT_WEATHER_URL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${APIKEY}`;
+        const FORECAST_URL = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${APIKEY}`;
+
+        try {
+            const [currentRes, forecastRes] = await Promise.all([
+                axios.get(CURRENT_WEATHER_URL),
+                axios.get(FORECAST_URL)
+            ]);
+
+            if (currentRes.status === 200) {
+                console.log("Weather Data:", currentRes.data);
+                dispatch({ type: "SET_CURRENT", payload: currentRes.data });
+            }
+
+            if (forecastRes.status === 200) {
+                console.log("Forecast Data:", forecastRes.data);
+                const dailyForecast = forecastRes.data.list.filter((item, index) => index % 8 === 0); // Extracting daily data
+                dispatch({ type: "SET_FORECAST", payload: dailyForecast });
+            }
+        } catch (error) {
+            console.error("Error fetching data:", error.response ? error.response.data : error.message);
+        }
+    };
+
+    useEffect(() => {
+        if (lat && lon) {
+            fetchWeatherData();
+        }
+    }, [city]);
 
     return (
-        <>
-            <div className="stateWrap">
-                <select className="stateMenu" defaultValue={city} onChange={handleChange}>
-                    {
-                        cities && cities.length > 0 && cities.map((city) =>{
-                            return (
-                                <option key={`${city.population}${city.lat}`} value={city.city}>
-                                    {city.city} - {city.admin_name}
-                                </option>
-                            )
-                        })
-                    }
-                </select>
-            </div>
-        </>
-    )
-}
+        <div className="weather-container">
+            <select className="stateMenu" defaultValue={city?.city || ""} onChange={handleChange}>
+                {cities.map((c) => (
+                    <option key={`${c.population}${c.lat}`} value={c.city}>
+                        {c.city} - {c.admin_name}
+                    </option>
+                ))}
+            </select>
+        </div>
+    );
+};
 
 export default ChooseStateComponent;

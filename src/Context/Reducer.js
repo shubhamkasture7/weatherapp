@@ -1,15 +1,4 @@
 
-
-
-
-
-
-
-
-
-
-
-
 export const WeatherReducer = (state , action) =>{
     switch(action.type){
         case 'SET_CITY':

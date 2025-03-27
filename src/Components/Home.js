@@ -3,6 +3,7 @@ import ChooseStateComponent from './ChooseState';
 import WeekInfoCardCoponents from "./WeekCard";
 import HUMIDITYComponents from "./Humidity"
 import LeftComponents from "./Left"
+import WeatherDisplay from "./WeatherDisplay";
 
 
 const HomeComponents = () =>{
@@ -13,7 +14,8 @@ const HomeComponents = () =>{
                     <LeftComponents/>
                     <div className="rightSide">
                         <ChooseStateComponent />
-                        <WeekInfoCardCoponents/>
+                        {/* <WeatherDisplay/> */}
+                        <WeekInfoCardCoponents />
                         <HUMIDITYComponents/>
                     </div>
                 </div>

@@ -1,50 +1,36 @@
 import React, { useEffect, useState } from "react";
-import {UseWeatherAPPContext} from '../../Context/Contex'
-
+import { UseWeatherAPPContext } from "../../Context/Contex";
 import SingleCardComponents from "../SingleCard";
 
+const WeekInfoCardComponents = () => {
+    const { state: { daily }, dispatch } = UseWeatherAPPContext();
+    const [selectedCard, setSelectedCard] = useState(0);
 
-const WeekInfoCardCoponents = () =>{
-
-    const {state: {daily} , dispatch} = UseWeatherAPPContext();
-
-    const [selectedCard , setSelectedCard] = useState(0);
-    // console.log("daily" , daily);
-
-    const updateCurrent = () =>{
-        return(
-            dispatch({
-                type:'SET_CURRENT',
-                payload: daily[selectedCard]
-            })
-        )
-    }
-
-    useEffect(() =>{
-        updateCurrent();
-    },[daily , selectedCard])
+    // Ensure we only update state if daily data is available
+    useEffect(() => {
+        if (daily && daily.length > 0 && daily[selectedCard]) {
+            dispatch({ type: "SET_CURRENT", payload: daily[selectedCard] });
+        }
+    }, [daily, selectedCard, dispatch]);
 
     return (
-        <>
-            <div className="cardWrap">
-                <ul className="cardList">
-                    {
-                        daily && daily.length > 0 ? daily.map((item,index) =>{
-                            if(index < 7)
-                            {
-                                return <SingleCardComponents key={index} item={item} 
-                                className= {index === selectedCard ? 'active' : ''} onClick={() =>{
-                                    setSelectedCard(index);
-                                    updateCurrent();
-                                }}/>
+        <div className="cardWrap">
+            <ul className="cardList">
+                {daily && daily.length > 0 ? (
+                    daily.slice(0, 7).map((item, index) => (
+                        <SingleCardComponents
+                            key={index}
+                            item={item || {}} // Fallback to an empty object
+                            className={index === selectedCard ? "active" : ""}
+                            onClick={() => setSelectedCard(index)}
+                        />
+                    ))
+                ) : (
+                    <p>Loading weather data...</p>
+                )}
+            </ul>
+        </div>
+    );
+};
 
-                            }
-                        }): ''
-                    }
-                </ul>
-            </div>
-        </>
-    )
-}
-
-export default WeekInfoCardCoponents;
+export default WeekInfoCardComponents;
