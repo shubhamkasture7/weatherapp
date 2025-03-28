@@ -1,26 +1,45 @@
 import React, { useEffect, useState } from "react";
 import { UseWeatherAPPContext } from "../../Context/Contex";
-import SingleCardComponents from "../SingleCard";
+import SingleCardComponent from "../SingleCard";
+import dayjs from "dayjs";
 
 const WeekInfoCardComponents = () => {
     const { state: { daily }, dispatch } = UseWeatherAPPContext();
     const [selectedCard, setSelectedCard] = useState(0);
+    const [filteredData, setFilteredData] = useState([]);
 
-    // Ensure we only update state if daily data is available
+    // Filter to get only one unique entry per day
     useEffect(() => {
-        if (daily && daily.length > 0 && daily[selectedCard]) {
-            dispatch({ type: "SET_CURRENT", payload: daily[selectedCard] });
+        if (daily && daily.length > 0) {
+            const uniqueDays = {};
+            const newFilteredData = daily.filter((item) => {
+                const date = dayjs.unix(item.dt).format("YYYY-MM-DD");
+                if (!uniqueDays[date]) {
+                    uniqueDays[date] = true;
+                    return true;
+                }
+                return false;
+            });
+
+            setFilteredData(newFilteredData);
         }
-    }, [daily, selectedCard, dispatch]);
+    }, [daily]);
+
+    // Set current weather data when a card is selected
+    useEffect(() => {
+        if (filteredData.length > 0 && filteredData[selectedCard]) {
+            dispatch({ type: "SET_CURRENT", payload: filteredData[selectedCard] });
+        }
+    }, [filteredData, selectedCard, dispatch]);
 
     return (
         <div className="cardWrap">
             <ul className="cardList">
-                {daily && daily.length > 0 ? (
-                    daily.slice(0, 7).map((item, index) => (
-                        <SingleCardComponents
-                            key={index}
-                            item={item || {}} // Fallback to an empty object
+                {filteredData.length > 0 ? (
+                    filteredData.slice(0, 7).map((item, index) => (
+                        <SingleCardComponent
+                            key={item.dt}
+                            item={item}
                             className={index === selectedCard ? "active" : ""}
                             onClick={() => setSelectedCard(index)}
                         />

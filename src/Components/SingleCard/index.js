@@ -1,15 +1,16 @@
 import React from "react";
 import dayjs from "dayjs";
 
-const SingleCardComponents = ({ item = {}, className, onClick }) => {
+const SingleCardComponent = ({ item = {}, className, onClick }) => {
     const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-    console.log("SingleCardComponents Item Data:", item); // Debugging Log
+    console.log("SingleCardComponent Item Data:", item); // Debugging Log
 
     // Ensure `item.dt` is valid before processing
-    const weekdayIndex = item?.dt ? dayjs.unix(item.dt).day() : 0;
+    const formattedDate = item?.dt ? dayjs.unix(item.dt).format("dddd") : "Unknown";
+    const weekdayShort = formattedDate.slice(0, 3); // Get first 3 letters (Mon, Tue, etc.)
 
-    // **Use correct temperature structure**
+    // Ensure `main.temp` exists
     const celsiusTemp = item?.main?.temp !== undefined ? Math.round(item.main.temp) : "N/A";
     const fahrenheitTemp = celsiusTemp !== "N/A" ? Math.round((item.main.temp * 9/5) + 32) : "N/A";
 
@@ -25,7 +26,7 @@ const SingleCardComponents = ({ item = {}, className, onClick }) => {
             />
 
             <span className="day-name">
-                {WEEKDAYS[weekdayIndex].slice(0, 3)}
+                {weekdayShort}
             </span>
 
             <span className="day-temp">
@@ -39,4 +40,4 @@ const SingleCardComponents = ({ item = {}, className, onClick }) => {
     );
 };
 
-export default SingleCardComponents;
+export default SingleCardComponent;
